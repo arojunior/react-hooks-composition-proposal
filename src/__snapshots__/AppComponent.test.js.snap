@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppComponent should match snapshot 1`] = `
+<div
+  className="App"
+>
+  <header
+    className="App-header"
+  >
+    <img
+      alt="logo"
+      className="App-logo"
+      src="logo.svg"
+    />
+    <h2>
+      Hello 
+    </h2>
+    <h2>
+      Start editing to see some magic happen!
+    </h2>
+    <button
+      onClick={[Function]}
+    >
+      Change bar
+    </button>
+    <div>
+      <p>
+        <strong>
+          Name: 
+        </strong>
+      </p>
+    </div>
+  </header>
+</div>
+`;
