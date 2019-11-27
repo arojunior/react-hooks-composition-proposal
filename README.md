@@ -2,7 +2,7 @@
 
 I will quote the README from [react-compose-hooks](https://github.com/lucasconstantino/react-compose-hooks) because the motivation is basically the same.
 
---> The copied text starts here:
+> --> The copied text starts here:
 
 ## Motivation
 
@@ -16,9 +16,9 @@ Having all that said, we have to point the obvious answer to all these problems,
 
 I don't have a final solution. All I know is I've loved the developing experience gains first brought by [recompose](https://github.com/acdlite/recompose)
 
---> And ends here.
+> --> And ends here.
 
-That was [Lucas Constatino](https://github.com/lucasconstantino) words.
+Those were [Lucas Constatino](https://github.com/lucasconstantino)'s words.
 
 ## My two cents
 
@@ -185,4 +185,4 @@ describe("AppContainer", () => {
 
 ```
 
-Feel free to open issues and discuss about this approach.
+What do you think about it? Feel free to open issues and discuss about this approach.
