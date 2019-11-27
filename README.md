@@ -1,68 +1,188 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React hooks composition proposal
 
-## Available Scripts
+I will quote the README from [react-compose-hooks](https://github.com/lucasconstantino/react-compose-hooks) because the motivation is basically the same.
 
-In the project directory, you can run:
+--> The copied text starts here:
 
-### `yarn start`
+## Motivation
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. **Side-effect:** no one really like them, and within the React ecosystem we've been trying to get rid of them - or at least encapsulate them for good. Hooks seems to go in the other direction, when it encourages people to call a function and expect a dynamic return inside a previously purely functional component. Which leads to...
+2. **Not functional:** I might be completely wrong with this one, but it seems we've just buried some concepts of functional programming when embracing hooks. No more pure functions, which should _always return the same result when called with the same arguments_. Which also leeds to...
+3. **Testability issues:** APIs are certaily to come, but so far we are all sure that using hooks will not encourage testable code at all.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Having all that said, we have to point the obvious answer to all these problems, which is: we already had these problems with classes. This is true, but now we are making the distinction between logic and presentational components much more subtle. Experienced developers are sure going to keep things separetely enough, but what about newcommers? They were once tempted to use classes everywhere, and the introduction of purely functional components was a good way to teach them to split logic from presentation. The difference between smart/dumb (container/component, whatever) is now way more difficult to grasp.
 
-### `yarn test`
+## Solution
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+I don't have a final solution. All I know is I've loved the developing experience gains first brought by [recompose](https://github.com/acdlite/recompose)
 
-### `yarn build`
+--> And ends here.
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+That was [Lucas Constatino](https://github.com/lucasconstantino) words.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## My two cents
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+I really love `recompose` as well, but I can agree that is too much abstraction and high order components.
+That said, I think we can use the best of the two worlds.
 
-### `yarn eject`
+This is a component using `useState` and `useEffect` hooks:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```javascript
+// AppComponent.js
+const AppComponent = ({ useFoo, useGithub }) => {
+  const { foo, changeFoo } = useFoo("bar");
+  const { user } = useGithub("arojunior");
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <h2>Hello {foo}</h2>
+        <h2>Start editing to see some magic happen!</h2>
+        <button onClick={() => changeFoo("wooow")}>Change bar</button>
+        <div>
+          <p>
+            <strong>Name: </strong>
+            {user.name}
+          </p>
+        </div>
+      </header>
+    </div>
+  );
+};
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+What is the difference? There's no implementation inside the Component. It's using custom hooks and receiving it by props.
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+The custom hooks:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```javascript
+// AppService.js
+import { useState, useEffect } from 'react';
 
-## Learn More
+export const useFoo = initialState => {
+  const [foo, setFoo] = useState(initialState);
+  const changeFoo = value => {
+    setFoo(value === foo ? initialState : value);
+  };
+  return { foo, changeFoo };
+};
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export const useGithub = username => {
+  const [user, setUser] = useState({});
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  useEffect(() => {
+    const getUser = async () => {
+      const githubUser = await fetch(
+        `https://api.github.com/users/${username}`
+      );
+      return githubUser.json();
+    };
 
-### Code Splitting
+    getUser().then(u => setUser(u));
+  }, [user, username]);
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+  return { user };
+};
+```
 
-### Analyzing the Bundle Size
+And the magic happens here:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+```javascript
+// AppContainer.js
+import { withProps } from './utils/hocFactory';
+import { useFoo, useGithub } from './AppService';
+import AppComponent from './AppComponent';
 
-### Making a Progressive Web App
+const AppContainer = withProps({
+  useFoo,
+  useGithub
+})(AppComponent);
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+export default AppContainer;
+```
 
-### Advanced Configuration
+Just one HOC and all of the responsabilities are clear.
+With this kind of implementation, we can easily test the `AppComponent.js` as a pure component:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+```javascript
+// AppComponent.test.js
+describe("AppComponent", () => {
+  test("should match snapshot", () => {
+    const useFoo = jest.fn(() => ({}));
+    const useGithub = jest.fn(() => ({ user: {} }));
 
-### Deployment
+    const tree = renderer
+      .create(<AppComponent useFoo={useFoo} useGithub={useGithub} />)
+      .toJSON();
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+    expect(tree).toMatchSnapshot();
+  });
+});
+```
 
-### `yarn build` fails to minify
+We can also test the behavior (hooks) separeted:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```javascript
+// AppService.test.js
+describe("AppService", () => {
+  describe("useFoo", () => {
+    test("should render the correct initialState", () => {
+      const { result } = renderHook(() => useFoo("bar"));
+      expect(result.current.foo).toBe("bar");
+    });
+
+    test("should change foo value", () => {
+      const { result } = renderHook(() => useFoo("bar"));
+      act(() => {
+        result.current.changeFoo("woow");
+      });
+      expect(result.current.foo).toBe("woow");
+    });
+
+    test("should change foo value to initialState when new value is equals to previous", () => {
+      const { result } = renderHook(() => useFoo("bar"));
+      act(() => {
+        result.current.changeFoo("woow");
+      });
+      act(() => {
+        result.current.changeFoo("woow");
+      });
+      expect(result.current.foo).toBe("bar");
+    });
+  });
+});
+```
+
+And then we can test the two things together, the presentational component and the behavior:
+
+```javascript
+// AppContainer.test.js
+describe("AppContainer", () => {
+  beforeAll(() => {
+    const fakeUserResponse = { name: "Junior Oliveira" };
+
+    jest.spyOn(window, "fetch").mockImplementation(() => {
+      return Promise.resolve({
+        json: () => Promise.resolve(fakeUserResponse)
+      });
+    });
+  })
+
+  test("Render with useGithub hook and its initial state", async () => {
+    const { getByText } = render(<AppContainer />);
+    await wait(() => {
+      expect(getByText(/Junior Oliveira/i)).toBeInTheDocument();
+    })
+  });
+
+  test("Render with useFoo hook and its initial state", async () => {
+    const { getByText } = render(<AppContainer />);
+    await wait(() => {
+      expect(getByText(/Hello bar/i)).toBeInTheDocument();
+    })
+  });
+});
+
+```
+
+Feel free to open issues and discuss about this approach.
