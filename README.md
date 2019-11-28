@@ -51,7 +51,7 @@ const AppComponent = ({ useFoo, useGithub }) => {
 };
 ```
 
-What is the difference? There's no implementation inside the Component. It's using custom hooks and receiving it by props.
+What is the difference so far? There's no implementation inside the Component. It's using custom hooks and receiving it by props.
 
 The custom hooks:
 
@@ -101,7 +101,7 @@ const AppContainer = withProps({
 export default AppContainer;
 ```
 
-Just one HOC and all of the responsabilities are clear.
+Just one HOC and all of the responsibilities are clear.
 With this kind of implementation, we can easily test the `AppComponent.js` as a pure component:
 
 ```javascript
@@ -120,7 +120,7 @@ describe("AppComponent", () => {
 });
 ```
 
-We can also test the behavior (hooks) separeted:
+We can also test the behavior (hooks) separated:
 
 ```javascript
 // AppService.test.js
