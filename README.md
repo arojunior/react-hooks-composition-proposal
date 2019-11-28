@@ -1,6 +1,6 @@
 # React hooks composition proposal
 
-I will quote the README from [react-compose-hooks](https://github.com/lucasconstantino/react-compose-hooks) because the motivation is basically the same.
+I will quote the README from [react-compose-hooks](https://github.com/lucasconstantino/react-compose-hooks) because the motivation is basically the same, I just don't agree 100% with that implementation.
 
 > --> The copied text starts here:
 
