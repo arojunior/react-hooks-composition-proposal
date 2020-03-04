@@ -1,4 +1,4 @@
-import { createFactory } from "react";
+import { createFactory } from 'react';
 
 export const mapProps = propsMapper => BaseComponent => {
   const factory = createFactory(BaseComponent);
@@ -9,7 +9,7 @@ export const mapProps = propsMapper => BaseComponent => {
 export const withProps = input => {
   const hoc = mapProps(props => ({
     ...props,
-    ...(typeof input === "function" ? input(props) : input)
+    ...(typeof input === 'function' ? input(props) : input),
   }));
   return hoc;
 };
